@@ -17,7 +17,7 @@ let app = express()
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
- origin:["https://e-commerce-website-1-uunq.onrender.com" , "http://localhost:5174"],
+ origin:["https://e-commerce-website-1-uunq.onrender.com" , "https://e-commerce-website-1123.onrender.com"],
  credentials:true
 }))
 
