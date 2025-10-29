@@ -13,90 +13,225 @@ import { auth, provider } from '../../utils/Firebase';
 import { userDataContext } from '../context/UserContext';
 import { toast } from 'react-toastify';
 import Loading from '../component/Loading';
+import { useEffect } from 'react';
 
-function Registration() {
-    let [show,setShow] = useState(false)
-    let {serverUrl} = useContext(authDataContext)
-    let [name,setName] = useState("")
-    let [email,setEmail] = useState("")
-    let [password,setPassword] = useState("")
-    let {userdata , getCurrentUser} = useContext(userDataContext)
-    let [loading,setLoading] = useState(false)
+import { Link } from 'react-router-dom';
+// import React, { useState, useContext } from 'react';
+// import { MemoryRouter, Link } from 'react-router-dom';
+// import axios from 'axios';
+// import { auth } from '../../utils/Firebase.js';
+// import { signInWithPopup } from 'firebase/auth';
+// import { provider } from '../../utils/Firebase.js';
 
-    let navigate = useNavigate()
+// Import the real context
+// import { authDataContext } from '../context/AuthDataContext.jsx';
+// Mock Logo Import (as in original)
+// const Logo = 'https://placehold.co/100x40/0c2025/0ef?text=LOGO';
 
-    const handleSignup = async (e) => {
-        setLoading(true)
-        e.preventDefault()
+
+// --- SVG Icon Components ---
+const EyeIcon = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+);
+
+const EyeOffIcon = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+        <line x1="2" x2="22" y1="2" y2="22"></line>
+    </svg>
+);
+
+// const google = 'https://placehold.co/20x20/ffffff/000000?text=G';
+
+// --- Registration Component (Frontend Only) ---
+export default function Register() {
+    const { serverUrl } = useContext(authDataContext);
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (password !== confirmPassword) {
+            alert("Passwords do not match!");
+            return;
+        }
+
         try {
-         const result = await axios.post(serverUrl + '/api/auth/registration',{
-            name,email,password
-         },{withCredentials:true})
-            getCurrentUser()
-            navigate("/")
-            toast.success("User Registration Successful")
-            console.log(result.data)
-            setLoading(false)
+            const response = await axios.post(`${serverUrl}/api/auth/registration`, {
+                name,
+                email,
+                password,
+            }, { withCredentials: true });
+            
+            console.log('Registration successful:', response.data);
+            alert('Registration successful!');
 
         } catch (error) {
-            console.log(error)
-            toast.error("User Registration Failed")
+            console.error('Registration error:', error);
+            const errorMessage = error.response ? error.response.data.message : "An error occurred.";
+            alert(`Registration failed: ${errorMessage}`);
         }
-    }
+    };
 
     const googleSignup = async () => {
         try {
-            const response = await signInWithPopup(auth , provider)
-            let user = response.user
-            let name = user.displayName;
-            let email = user.email
+                const responce = await signInWithPopup(auth,provider)
+                let user = responce.user
+                let name = user.displayName;
+                let email = user.email
 
-            const result = await axios.post(serverUrl + "/api/auth/googlelogin" ,{name , email} , {withCredentials:true})
-            console.log(result.data)
-            getCurrentUser()
-            navigate("/")
-            toast.success("User Registration Successful")
-
-        } catch (error) {
-            console.log(error)
-            toast.error("User Registration Failed")
+                const reult = await axios.post(`${serverUrl}/api/auth/googlelogin`, {
+                    name,
+                    email,
+                }, { withCredentials: true });
+                console.log('Google signup successful:', reult.data);
+                alert('Google signup successful!'); 
+                
         }
-        
+        catch (error) {
+            console.error('Google signup error:', error);
+            const errorMessage = error.response ? error.response.data.message : "An error occurred.";
+            alert(`Google signup failed: ${errorMessage}`);
+        }
     }
-  
-  return (
-    <div className='w-[100vw] h-[100vh] bg-gradient-to-l from-[#141414] to-[#0c2025] text-[white] flex flex-col items-center justify-start'>
-    <div className='w-[100%] h-[80px] flex items-center justify-start px-[30px] gap-[10px] cursor-pointer' onClick={()=>navigate("/")}>
-    <img className='w-[40px]' src={Logo} alt="" />
-    <h1 className='text-[22px] font-sans '>OneCart</h1>
-    </div>
 
-    <div className='w-[100%] h-[100px] flex items-center justify-center flex-col gap-[10px]'>
-        <span className='text-[25px] font-semibold'>Registration Page</span>
-        <span className='text-[16px]'>Welcome to OneCart, Place your order</span>
 
-    </div>
-    <div className='max-w-[600px] w-[90%] h-[500px] bg-[#00000025] border-[1px] border-[#96969635] backdrop:blur-2xl rounded-lg shadow-lg flex items-center justify-center '>
-        <form action="" onSubmit={handleSignup} className='w-[90%] h-[90%] flex flex-col items-center justify-start gap-[20px]'>
-            <div className='w-[90%] h-[50px] bg-[#42656cae] rounded-lg flex items-center justify-center gap-[10px] py-[20px] cursor-pointer' onClick={googleSignup} >
-                <img src={google}  alt="" className='w-[20px]'/> Registration with Google
+
+    return (
+        <div className="w-screen min-h-screen bg-gradient-to-l from-[#141414] to-[#0c2025] text-white flex justify-center items-center p-8 font-['Poppins']">
+            <img
+                src={Logo}
+                alt="Logo"
+                className="absolute top-8 left-8 w-[100px] cursor-pointer"
+            />
+
+            <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-center gap-16">
+                {/* Left Side */}
+                <div className="w-full md:w-1/2 text-center md:text-left">
+                    <h1 className="text-5xl font-bold leading-tight">Create Your Account</h1>
+                    <p className="text-gray-300 mt-4 text-lg">
+                        Join our community and start your journey with us. It only takes a minute!
+                    </p>
+                </div>
+
+                {/* Right Side: Form */}
+                <div className="w-full md:w-1/2 flex justify-center items-center mt-12 md:mt-0">
+                    <div className="w-[400px] bg-[#1f293a]/30 p-8 rounded-2xl shadow-lg border border-[#2c4766]">
+                        <form onSubmit={handleSubmit} className="w-full">
+                            <h2 className="text-3xl text-[#0ef] text-center font-semibold mb-6">
+                                Register
+                            </h2>
+
+                            {/* Full Name */}
+                            <div className="relative my-4">
+                                <input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Full Name
+                                </label>
+                            </div>
+
+                            {/* Email */}
+                            <div className="relative my-4">
+                                <input
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Email
+                                </label>
+                            </div>
+
+                            {/* Password */}
+                            <div className="relative my-4">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Password
+                                </label>
+                                <div
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute top-1/2 right-5 -translate-y-1/2 cursor-pointer text-xl text-gray-400 hover:text-white"
+                                >
+                                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                </div>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div className="relative my-4">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Confirm Password
+                                </label>
+                                <div
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute top-1/2 right-5 -translate-y-1/2 cursor-pointer text-xl text-gray-400 hover:text-white"
+                                >
+                                    {showConfirmPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                </div>
+                            </div>
+
+                            {/* Submit */}
+                            <button
+                                type="submit"
+                                className="w-full h-[45px] bg-[#0ef] border-none outline-none rounded-full cursor-pointer text-base text-[#1f293a] font-semibold mt-4 hover:bg-cyan-500 transition-colors"
+                            >
+                                Register
+                            </button>
+
+                            {/* Links */}
+                            <div className="mt-5 mb-2.5 text-center text-sm">
+                                <p className="text-gray-300">
+                                    Already have an account?
+                                    <Link
+                                        to="/login"
+                                        className="text-base text-[#0ef] no-underline font-semibold ml-1 hover:underline"
+                                    >
+                                        Login
+                                    </Link>
+                                </p>
+                                <p className="text-gray-300 mt-2 flex items-center justify-center">
+                                    Or register with
+                                    <img
+                                        src={google}
+                                        alt="Google icon"
+                                        className="w-[20px] h-[20px] inline ml-2 cursor-pointer"
+                                        onClick={googleSignup}
+                                    />
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div className='w-[100%] h-[20px] flex items-center justify-center gap-[10px]'>
-             <div className='w-[40%] h-[1px] bg-[#96969635]'></div> OR <div className='w-[40%] h-[1px] bg-[#96969635]'></div>
-            </div>
-            <div className='w-[90%] h-[400px] flex flex-col items-center justify-center gap-[15px]  relative'>
-                <input type="text" className='w-[100%] h-[50px] border-[2px] border-[#96969635] backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffffc7] px-[20px] font-semibold' placeholder='UserName' required onChange={(e)=>setName(e.target.value)} value={name}/>
-                 <input type="text" className='w-[100%] h-[50px] border-[2px] border-[#96969635] backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffffc7] px-[20px] font-semibold' placeholder='Email' required onChange={(e)=>setEmail(e.target.value)} value={email}/>
-                  <input type={show?"text":"password"} className='w-[100%] h-[50px] border-[2px] border-[#96969635] backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffffc7] px-[20px] font-semibold' placeholder='Password' required onChange={(e)=>setPassword(e.target.value)} value={password}/>
-                  {!show && <IoEyeOutline className='w-[20px] h-[20px] cursor-pointer absolute right-[5%]' onClick={()=>setShow(prev => !prev)}/>}
-                  {show && <IoEye className='w-[20px] h-[20px] cursor-pointer absolute right-[5%]' onClick={()=>setShow(prev => !prev)}/>}
-                  <button className='w-[100%] h-[50px] bg-[#6060f5] rounded-lg flex items-center justify-center mt-[20px] text-[17px] font-semibold'>{loading? <Loading/> :"Create Account"}</button>
-                  <p className='flex gap-[10px]'>You have any account? <span className='text-[#5555f6cf] text-[17px] font-semibold cursor-pointer' onClick={()=>navigate("/login")}>Login</span></p>
-            </div>
-        </form>
-    </div>
-    </div>
-  )
+        </div>
+    );
 }
-
-export default Registration

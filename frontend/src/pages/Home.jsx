@@ -25,24 +25,28 @@ function Home() {
   },[])
   
   return (
-    <div className='overflow-x-hidden relative top-[70px]'>
-    <div className=' w-[100vw] lg:h-[100vh] md:h-[50vh] sm:h-[30vh]   bg-gradient-to-l from-[#141414] to-[#0c2025] '>
-
-      <Backgound heroCount={heroCount}/>
-      <Hero
-      heroCount={heroCount}
-      setHeroCount={setHeroCount}
-      heroData={heroData[heroCount]}
-      />
-
-
-     
+<div class="min-h-screen bg-gray-100">
+    <div class="relative w-full h-screen bg-gradient-to-r from-gray-800 to-black">
+        <Backgound heroCount={heroCount} />
+        <div class="absolute inset-0 flex items-center justify-center">
+            <Hero
+                heroCount={heroCount}
+                setHeroCount={setHeroCount}
+                heroData={heroData[heroCount]}
+            />
+        </div>
     </div>
-    <Product/>
-    <OurPolicy/>
-    <NewLetterBox/>
-    <Footer/>
+    <div class="py-16">
+        <Product />
     </div>
+    <div class="bg-white py-16">
+        <OurPolicy />
+    </div>
+    <div class="py-16">
+        <NewLetterBox />
+    </div>
+    <Footer />
+</div>
   )
 }
 

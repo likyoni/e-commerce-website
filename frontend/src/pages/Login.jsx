@@ -12,85 +12,149 @@ import { signInWithPopup } from 'firebase/auth';
 import { auth, provider } from '../../utils/Firebase';
 import { userDataContext } from '../context/UserContext';
 import Loading from '../component/Loading';
+import { Link } from 'react-router-dom';
 
-function Login() {
-    let [show,setShow] = useState(false)
-        let [email,setEmail] = useState("")
-        let [password,setPassword] = useState("")
-        let {serverUrl} = useContext(authDataContext)
-        let {getCurrentUser} = useContext(userDataContext)
-        let [loading,setLoading] = useState(false)
+const EyeIcon = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+        <circle cx="12" cy="12" r="3"></circle>
+    </svg>
+);
 
-    let navigate = useNavigate()
+const EyeOffIcon = (props) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"></path>
+        <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"></path>
+        <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"></path>
+        <line x1="2" x2="22" y1="2" y2="22"></line>
+    </svg>
+);
 
-    const handleLogin = async (e) => {
-        setLoading(true)
-        e.preventDefault()
+// const google = 'https://placehold.co/20x20/ffffff/000000?text=G';
+
+export default function Login() {
+    const { serverUrl } = useContext(authDataContext);
+    const { getCurrentUser } = useContext(userDataContext);
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState({ email: '', password: '' });
+    const [showPassword, setShowPassword] = useState(false);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
         try {
-            let result = await axios.post(serverUrl + '/api/auth/login',{
-                email,password
-            },{withCredentials:true})
-            console.log(result.data)
-            setLoading(false)
-            getCurrentUser()
-            navigate("/")
-            toast.success("User Login Successful")
+            const response = await axios.post(`${serverUrl}/api/auth/login`, formData, { 
+                withCredentials: true 
+            });
+            console.log('Login successful:', response.data);
             
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+            getCurrentUser();
+            navigate('/');
+            alert('Login successful!');
         } catch (error) {
-            console.log(error)
-            toast.error("User Login Failed")
+            console.error('Login error:', error);
+            const errorMessage = error.response ? error.response.data.message : "Login failed.";
+            alert(errorMessage);
         }
-    }
-     const googlelogin = async () => {
-            try {
-                const response = await signInWithPopup(auth , provider)
-                let user = response.user
-                let name = user.displayName;
-                let email = user.email
-    
-                const result = await axios.post(serverUrl + "/api/auth/googlelogin" ,{name , email} , {withCredentials:true})
-                console.log(result.data)
-                getCurrentUser()
-            navigate("/")
-    
-            } catch (error) {
-                console.log(error)
-            }
+    };
+
+    const googleLogin = async () => {
+        try {
+            const response = await signInWithPopup(auth, provider);
+            let user = response.user;
+            let name = user.displayName;
+            let email = user.email;
+
+            const result = await axios.post(`${serverUrl}/api/auth/googlelogin`, {
+                name,
+                email,
+            }, { withCredentials: true });
             
+            console.log('Google Login successful:', result.data);
+            localStorage.setItem('user', JSON.stringify(result.data.user));
+            getCurrentUser();
+            navigate('/');
+            alert('Google Login successful!');
+        } catch (error) {
+            console.error('Google Login error:', error);
+            const errorMessage = error.response ? error.response.data.message : "An error occurred.";
+            alert(`Google Login failed: ${errorMessage}`);
         }
-  return (
-    <div className='w-[100vw] h-[100vh] bg-gradient-to-l from-[#141414] to-[#0c2025] text-[white] flex flex-col items-center justify-start'>
-    <div className='w-[100%] h-[80px] flex items-center justify-start px-[30px] gap-[10px] cursor-pointer' onClick={()=>navigate("/")}>
-    <img className='w-[40px]' src={Logo} alt="" />
-    <h1 className='text-[22px] font-sans '>OneCart</h1>
-    </div>
+    };
 
-    <div className='w-[100%] h-[100px] flex items-center justify-center flex-col gap-[10px]'>
-        <span className='text-[25px] font-semibold'>Login Page</span>
-        <span className='text-[16px]'>Welcome to OneCart, Place your order</span>
+    return (
+        <div className="w-screen min-h-screen bg-gradient-to-l from-[#141414] to-[#0c2025] text-white flex justify-center items-center p-8 font-['Poppins']">
+            <img src={Logo} alt="Logo" className="absolute top-8 left-8 w-[100px] cursor-pointer" onClick={() => navigate('/')} />
 
-    </div>
-    <div className='max-w-[600px] w-[90%] h-[500px] bg-[#00000025] border-[1px] border-[#96969635] backdrop:blur-2xl rounded-lg shadow-lg flex items-center justify-center '>
-        <form action="" onSubmit={handleLogin} className='w-[90%] h-[90%] flex flex-col items-center justify-start gap-[20px]'>
-            <div className='w-[90%] h-[50px] bg-[#42656cae] rounded-lg flex items-center justify-center gap-[10px] py-[20px] cursor-pointer' onClick={googlelogin}>
-                <img src={google} alt="" className='w-[20px]'/> Login account with Google
+            <div className="w-full max-w-6xl flex flex-col md:flex-row items-center justify-center gap-16">
+                <div className="w-full md:w-1/2 text-center md:text-left">
+                    <h1 className="text-5xl font-bold leading-tight">Welcome Back!</h1>
+                    <p className="text-gray-300 mt-4 text-lg">
+                        We're so excited to see you again. Enter your details to continue.
+                    </p>
+                </div>
+
+                <div className="w-full md:w-1/2 flex justify-center items-center mt-12 md:mt-0">
+                    <div className="w-[400px] bg-[#1f293a]/30 p-8 rounded-2xl shadow-lg border border-[#2c4766]">
+                        <form onSubmit={handleSubmit} className="w-full">
+                            <h2 className="text-3xl text-[#0ef] text-center font-semibold mb-6">Login</h2>
+
+                            <div className="relative my-4">
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Email
+                                </label>
+                            </div>
+
+                            <div className="relative my-4">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                    className="peer w-full h-[50px] bg-transparent border-2 border-[#2c4766] outline-none rounded-full text-base text-white px-5 transition-colors focus:border-[#0ef] valid:border-[#0ef]"
+                                />
+                                <label className="absolute top-1/2 left-5 -translate-y-1/2 text-base text-gray-400 pointer-events-none transition-all peer-focus:top-0 peer-focus:text-xs peer-focus:bg-[#1c2e42] peer-focus:px-1.5 peer-focus:text-[#0ef] peer-valid:top-0 peer-valid:text-xs peer-valid:bg-[#1c2e42] peer-valid:px-1.5 peer-valid:text-[#0ef]">
+                                    Password
+                                </label>
+                                <div onClick={() => setShowPassword(!showPassword)} className="absolute top-1/2 right-5 -translate-y-1/2 cursor-pointer text-xl text-gray-400 hover:text-white">
+                                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                                </div>
+                            </div>
+
+                            <button type="submit" className="w-full h-[45px] bg-[#0ef] border-none outline-none rounded-full cursor-pointer text-base text-[#1f293a] font-semibold mt-4 hover:bg-cyan-500 transition-colors">
+                                Login
+                            </button>
+
+                            <div className="mt-5 mb-2.5 text-center text-sm">
+                                <p className="text-gray-300">
+                                    Don't have an account?
+                                    <Link to="/signup" className="text-base text-[#0ef] no-underline font-semibold ml-1 hover:underline">
+                                        Register
+                                    </Link>
+                                </p>
+                                <p className="text-gray-300 mt-2 flex items-center justify-center">
+                                    Or login with
+                                    <img src={google} alt="Google icon" className="w-[20px] h-[20px] inline ml-2 cursor-pointer" onClick={googleLogin} />
+                                </p>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div className='w-[100%] h-[20px] flex items-center justify-center gap-[10px]'>
-             <div className='w-[40%] h-[1px] bg-[#96969635]'></div> OR <div className='w-[40%] h-[1px] bg-[#96969635]'></div>
-            </div>
-            <div className='w-[90%] h-[400px] flex flex-col items-center justify-center gap-[15px]  relative'>
-              
-                 <input type="text" className='w-[100%] h-[50px] border-[2px] border-[#96969635] backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffffc7] px-[20px] font-semibold' placeholder='Email' required  onChange={(e)=>setEmail(e.target.value)} value={email}/>
-                  <input type={show?"text":"password"} className='w-[100%] h-[50px] border-[2px] border-[#96969635] backdrop:blur-sm rounded-lg shadow-lg bg-transparent placeholder-[#ffffffc7] px-[20px] font-semibold' placeholder='Password' required onChange={(e)=>setPassword(e.target.value)} value={password}/>
-                  {!show && <IoEyeOutline className='w-[20px] h-[20px] cursor-pointer absolute right-[5%] bottom-[57%]' onClick={()=>setShow(prev => !prev)}/>}
-                  {show && <IoEye className='w-[20px] h-[20px] cursor-pointer absolute right-[5%] bottom-[57%]' onClick={()=>setShow(prev => !prev)}/>}
-                  <button className='w-[100%] h-[50px] bg-[#6060f5] rounded-lg flex items-center justify-center mt-[20px] text-[17px] font-semibold'>{loading? <Loading/> : "Login"}</button>
-                  <p className='flex  gap-[10px]'>You haven't any account? <span className='text-[#5555f6cf] text-[17px] font-semibold cursor-pointer' onClick={()=>navigate("/signup")}>Create New Account</span></p>
-            </div>
-        </form>
-    </div>
-    </div>
-  )
+        </div>
+    );
 }
-
-export default Login
